@@ -52,6 +52,8 @@ Will follow a multi-tier architecture of:
 ## Planned API Endpoints
 Role Based access - Entries can be set as `PRIVATE` - meaning they will not show on public `GET` endpoints if Principle is not the Author.
 
+Planned Authorities - `USER` (basic user/author) and `ADMIN` (administrator)
+
 | Resource   | HTTP Method | Endpoint                                  | Description                                                                                                                             | Access Role           |
 |:-----------|:------------|:------------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------|:----------------------|
 | Blog Entry | `GET`       | `/api/posts`                              | Retrieve all entries (with optional filters - category_id, user_id, date_updated, and/or pagination).                                   | `PUBLIC, USER, ADMIN` |
@@ -63,8 +65,8 @@ Role Based access - Entries can be set as `PRIVATE` - meaning they will not show
 | Comment    | `GET`       | `/api/comments/{parentCommentId}/replies` | Get all replies to a specific comment (lazy load).                                                                                      | `PUBLIC, USER, ADMIN` |
 | Comment    | `POST`      | `/api/posts/{id}/comments`                | Create a new comment (optional parentCommentId for creating a reply).                                                                   | `USER, ADMIN`         |
 | Comment    | `DELETE`    | `/api/comments/{id}`                      | Delete a comment (Requires Entry Author or Admin role - Comment Author not allowed to delete due to cascade delete of unowned replies). | `AUTHOR(USER), ADMIN` |
-| User       | `POST`      | `/api/auth/register`                      | Register a new user account.                                                                                                            | `PUBLIC`              |
-| User       | `POST`      | `/api/auth/login`                         | Authenticate user and receive a JWT.                                                                                                    | `PUBLIC`              |
+| AppUser    | `POST`      | `/api/auth/register`                      | Register a new user account.                                                                                                            | `PUBLIC`              |
+| AppUser    | `POST`      | `/api/auth/login`                         | Authenticate user and receive a JWT.                                                                                                    | `PUBLIC`              |
 | Category   | `GET`       | `/api/categories`                         | Get all categories.                                                                                                                     | `PUBLIC`              |
 | Category   | `POST`      | `/api/categories`                         | Create a new category.                                                                                                                  | `ADMIN`               |
 | Category   | `PUT`       | `/api/categories/{id}`                    | Update a category.                                                                                                                      | `ADMIN`               |
