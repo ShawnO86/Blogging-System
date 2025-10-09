@@ -96,9 +96,10 @@ public class BlogEntryTest {
     }
 
     @Test
-    @DisplayName("6. blogEntry entities are not equal with null ID")
+    @DisplayName("6. blogEntry entities are not equal with null IDs")
     public void testNotEquals() {
         BlogEntry testEntry = new BlogEntry();
+        blogEntry.setId(null);
 
         assertNotEquals(testEntry, blogEntry);
         assertNotEquals(blogEntry, testEntry);
