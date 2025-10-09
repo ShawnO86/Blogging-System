@@ -62,10 +62,6 @@ public class Comment {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public AppUser getAuthor() {
         return author;
     }
