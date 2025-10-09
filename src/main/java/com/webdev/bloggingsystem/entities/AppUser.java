@@ -3,7 +3,9 @@ package com.webdev.bloggingsystem.entities;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "Users")
@@ -26,6 +28,13 @@ public class AppUser {
 
     @Column(name = "date_created", nullable = false, insertable = false, updatable = false)
     private LocalDate createdAt;
+
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    private Set<BlogEntry> posts =  new HashSet<>();
+
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    private Set<Comment> comments =  new HashSet<>();
+
 
     public AppUser() {}
 
@@ -68,6 +77,22 @@ public class AppUser {
     }
     public LocalDate getCreatedAt() {
         return createdAt;
+    }
+    public Set<BlogEntry> getPosts() {
+        return posts;
+    }
+    public Set<Comment> getComments() {
+        return comments;
+    }
+
+    public void addPost(BlogEntry post) {
+        this.posts.add(post);
+        post.setAuthor(this);
+    }
+
+    public void removePost(BlogEntry post) {
+        this.posts.remove(post);
+        post.setAuthor(null);
     }
 
     @Override

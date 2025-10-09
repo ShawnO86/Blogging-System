@@ -3,11 +3,13 @@ package com.webdev.bloggingsystem.entities;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class AppUserTest {
     private AppUser appUser;
+    private BlogEntry mockBlogEntry;
 
     @BeforeEach
     public void setUp() {
@@ -16,6 +18,9 @@ public class AppUserTest {
         appUser.setUsername("testUsername");
         appUser.setPassword("testPassword");
         appUser.setEmail("testEmail.com");
+
+        mockBlogEntry = Mockito.mock(BlogEntry.class);
+        Mockito.when(mockBlogEntry.getId()).thenReturn(1);
     }
 
     @Test
@@ -69,6 +74,18 @@ public class AppUserTest {
         testUser.setId(1);
         assertEquals(1, testUser.hashCode());
         assertEquals(Integer.valueOf(1).hashCode(), testUser.hashCode());
+    }
+
+    @Test
+    @DisplayName("6. add and remove from posts set")
+    public void testAddRemovePost() {
+        appUser.addPost(mockBlogEntry);
+        assertEquals(1, appUser.getPosts().size());
+        assertTrue(appUser.getPosts().contains(mockBlogEntry));
+
+        appUser.removePost(mockBlogEntry);
+        assertEquals(0, appUser.getPosts().size());
+        assertFalse(appUser.getPosts().contains(mockBlogEntry));
     }
 
 }
