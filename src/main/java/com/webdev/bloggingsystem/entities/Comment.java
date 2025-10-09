@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -104,5 +105,32 @@ public class Comment {
     public void removeReply(Comment reply) {
         this.replies.remove(reply);
         reply.setParentComment(null);
+    }
+
+    @Override
+    public String toString() {
+        return "Comment{" +
+                "id=" + id +
+                ", comment='" + comment + '\'' +
+                ", createdAt=" + createdAt +
+                ", replies=" + replies +
+                ", parentComment=" + parentComment +
+                '}';
+    }
+
+    // compares only id fields, returns false for entities not persisted - where this.id == null
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || this.getClass() != o.getClass() || this.getId() == null) return false;
+        Comment comment = (Comment) o;
+        return Objects.equals(this.getId(), comment.getId());
+    }
+
+    // sets hashcode for entities not persisted to 31 as temporary fallback
+    @Override
+    public int hashCode() {
+        if (this.getId() == null) return 31;
+        return this.getId().hashCode();
     }
 }
