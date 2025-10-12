@@ -1,5 +1,6 @@
 package com.webdev.bloggingsystem.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -30,9 +31,11 @@ public class AppUser {
     private LocalDate createdAt;
 
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<BlogEntry> posts =  new HashSet<>();
 
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Comment> comments =  new HashSet<>();
 
 

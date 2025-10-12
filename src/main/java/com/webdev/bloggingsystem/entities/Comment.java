@@ -1,5 +1,8 @@
 package com.webdev.bloggingsystem.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+//import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -14,7 +17,7 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String comment;
 
     @Column(name = "date_created", nullable = false, insertable = false, updatable = false)
@@ -24,15 +27,20 @@ public class Comment {
     @JoinColumn(name = "author_id", nullable = false)
     private AppUser author;
 
+    // BackReference to post gets ignored to prevent JSON serialization recursion.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
+    @JsonBackReference
     private BlogEntry blogEntry;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_comment_id")
+    @JsonIgnore // no need to include parent comment in JSON for blogEntry or Set<comment> it is used for reference
     private Comment parentComment;
 
     @OneToMany(mappedBy = "parentComment", orphanRemoval = true, fetch = FetchType.LAZY)
+    //@JsonManagedReference // <- to include in serialization (will require two extra query)
+    @JsonIgnore
     private Set<Comment> replies = new HashSet<>();
 
     public Comment() {}

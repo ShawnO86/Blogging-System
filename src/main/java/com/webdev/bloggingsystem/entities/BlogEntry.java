@@ -1,6 +1,8 @@
 package com.webdev.bloggingsystem.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -29,17 +31,19 @@ public class BlogEntry {
     @Column(name = "date_updated",  nullable = false, insertable = false, updatable = false)
     private LocalDateTime updatedAt;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "author_id", nullable = false)
     private AppUser author;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     @JoinTable(name = "Posts_Categories",
             joinColumns = @JoinColumn(name = "post_id"),
             inverseJoinColumns = @JoinColumn(name = "category_id"))
     private Set<Category> categories =  new HashSet<>();
 
-    @OneToMany(mappedBy = "blogEntry", orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "blogEntry", orphanRemoval = true, fetch = FetchType.EAGER)
+    @SQLRestriction("parent_comment_id IS NULL")
+    @JsonManagedReference
     private Set<Comment> comments = new HashSet<>();
 
     public BlogEntry() {}
@@ -99,8 +103,6 @@ public class BlogEntry {
     public void setComments(Set<Comment> comments) {
         this.comments = comments;
     }
-
-
     public void addCategory(Category category) {
         this.categories.add(category);
     }
