@@ -28,6 +28,7 @@ public class CommentTest {
     }
 
     @Test
+    @DisplayName("1. constructor")
     public void testConstructor() {
         Comment testComment = new Comment(
                 "Test Comment...",
@@ -41,17 +42,25 @@ public class CommentTest {
     }
 
     @Test
-    public void testAddRemoveReplyComment() {
+    @DisplayName("2. add reply to comment")
+    public void testAddReplyComment() {
         comment.addReply(replyComment);
 
         assertTrue(comment.getReplies().contains(replyComment));
         assertEquals(replyComment.getParentComment(), comment);
+    }
+
+    @Test
+    @DisplayName("3. remove reply from comment")
+    public void testRemoveReplyComment() {
+        comment.addReply(replyComment);
+        assertTrue(comment.getReplies().contains(replyComment));
 
         comment.removeReply(replyComment);
         assertFalse(comment.getReplies().contains(replyComment));
         assertNull(replyComment.getParentComment());
-
     }
+
     @Test
     @DisplayName("5. comment entities are equal with same ID")
     public void testEquals() {
