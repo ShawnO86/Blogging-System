@@ -1,10 +1,9 @@
 package com.webdev.bloggingsystem.entities;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import org.hibernate.annotations.SQLRestriction;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -26,10 +25,10 @@ public class BlogEntry {
     private boolean isPublic;
 
     @Column(name = "date_published", nullable = false, insertable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Column(name = "date_updated",  nullable = false, insertable = false, updatable = false)
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "author_id", nullable = false)
@@ -43,7 +42,6 @@ public class BlogEntry {
 
     @OneToMany(mappedBy = "blogEntry", orphanRemoval = true, fetch = FetchType.EAGER)
     @SQLRestriction("parent_comment_id IS NULL")
-    @JsonManagedReference
     private Set<Comment> comments = new HashSet<>();
 
     public BlogEntry() {}
@@ -79,10 +77,10 @@ public class BlogEntry {
     public void setPublic(boolean aPublic) {
         isPublic = aPublic;
     }
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
-    public LocalDateTime getUpdatedAt() {
+    public Instant getUpdatedAt() {
         return updatedAt;
     }
     public AppUser getAuthor() {
