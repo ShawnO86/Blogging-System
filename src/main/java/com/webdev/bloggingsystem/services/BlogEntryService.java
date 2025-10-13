@@ -1,9 +1,9 @@
 package com.webdev.bloggingsystem.services;
 
-import com.webdev.bloggingsystem.entities.BlogEntry;
+import com.webdev.bloggingsystem.entities.BlogEntryResponseDto;
 
 import java.util.Optional;
 
 public interface BlogEntryService {
-    Optional<BlogEntry> getBlogEntryById(Integer id);
+    Optional<BlogEntryResponseDto> getBlogEntryById(Integer id);
 }

@@ -1,6 +1,6 @@
 package com.webdev.bloggingsystem.controllers;
 
-import com.webdev.bloggingsystem.entities.BlogEntry;
+import com.webdev.bloggingsystem.entities.BlogEntryResponseDto;
 import com.webdev.bloggingsystem.services.BlogEntryService;
 
 import org.slf4j.Logger;
@@ -25,8 +25,9 @@ public class BlogEntryController {
     }
 
     @GetMapping("/posts/{id}")
-    public ResponseEntity<BlogEntry> getBlogEntry(@PathVariable Integer id) {
-        Optional<BlogEntry> blogEntry = blogEntryService.getBlogEntryById(id);
+    public ResponseEntity<BlogEntryResponseDto> getBlogEntry(@PathVariable Integer id) {
+        Optional<BlogEntryResponseDto> blogEntry = blogEntryService.getBlogEntryById(id);
+
         logger.debug("blogEntry optional: {}", blogEntry);
 
         if (blogEntry.isPresent()) {
