@@ -10,6 +10,14 @@ import java.util.Set;
 
 @Entity
 @Table(name = "Blog_Entries")
+// NamedEntityGraph needed for using JPA eager loading joins and use of pageable, avoiding N+1 for findAll()
+@NamedEntityGraph(
+        name = "fetch-with-pageable",
+        attributeNodes = {
+                @NamedAttributeNode("author"),
+                @NamedAttributeNode("categories")
+        }
+)
 public class BlogEntry {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,17 +48,18 @@ public class BlogEntry {
             inverseJoinColumns = @JoinColumn(name = "category_id"))
     private Set<Category> categories =  new HashSet<>();
 
-    @OneToMany(mappedBy = "blogEntry", orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "blogEntry", orphanRemoval = true, fetch = FetchType.LAZY)
     @SQLRestriction("parent_comment_id IS NULL")
     private Set<Comment> comments = new HashSet<>();
 
     public BlogEntry() {}
 
-    public BlogEntry(AppUser author, String title, String content, boolean isPublic) {
+    public BlogEntry(AppUser author, String title, String content, boolean isPublic, Set<Category> categories) {
         this.author = author;
         this.title = title;
         this.content = content;
         this.isPublic = isPublic;
+        this.categories = categories;
     }
 
     public Integer getId() {

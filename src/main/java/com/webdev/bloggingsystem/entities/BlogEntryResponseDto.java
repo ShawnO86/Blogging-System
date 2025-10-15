@@ -15,25 +15,31 @@ public record BlogEntryResponseDto(
         List<String> categories,
         List<CommentResponseDto> comments
 ) {
-    public BlogEntryResponseDto(BlogEntry entry) {
+    public BlogEntryResponseDto(BlogEntry entry, boolean getComments) {
         Set<Category> categorySet = entry.getCategories();
-        Set<Comment> commentSet = entry.getComments();
+        // only fetch comments if specified to maintain lazy load
+        Set<Comment> commentSet;
         List<String> categories = new ArrayList<>(categorySet.size());
-        List<CommentResponseDto> comments = new ArrayList<>(commentSet.size());
-        CommentResponseDto commentResponse;
+        CommentResponseDto commentDto;
+        List<CommentResponseDto> comments = null;
+
+        if (getComments) {
+            commentSet = entry.getComments();
+            comments = new ArrayList<>(commentSet.size());
+
+            for (Comment curr : commentSet) {
+                commentDto = new CommentResponseDto(
+                        curr.getId(),
+                        curr.getComment(),
+                        curr.getCreatedAt(),
+                        curr.getAuthor().getUsername()
+                );
+                comments.add(commentDto);
+            }
+        }
 
         for (Category curr : categorySet) {
             categories.add(curr.getCategoryName());
-        }
-
-        for (Comment curr : commentSet) {
-            commentResponse = new CommentResponseDto(
-                    curr.getId(),
-                    curr.getComment(),
-                    curr.getCreatedAt(),
-                    curr.getAuthor().getUsername()
-            );
-            comments.add(commentResponse);
         }
 
         // "this" default constructor

@@ -5,6 +5,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class BlogEntryTest {
@@ -37,7 +39,8 @@ public class BlogEntryTest {
                 mockUser,
                 "Test Blog Title",
                 "Test Blog Content.",
-                true
+                true,
+                Set.of(mockCategory)
         );
         assertNotNull(blogEntry);
         assertEquals(BlogEntry.class, blogEntry.getClass(), "BlogEntry class should be created.");
