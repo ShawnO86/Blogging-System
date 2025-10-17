@@ -21,19 +21,19 @@ import java.util.Optional;
 @RequestMapping("/api")
 public class BlogEntryController {
     private final static Logger logger  = LoggerFactory.getLogger(BlogEntryController.class);
-
     private final BlogEntryService blogEntryService;
+
 
     public BlogEntryController(BlogEntryService blogEntryService) {
         this.blogEntryService = blogEntryService;
     }
 
+
     @GetMapping("/posts/{id}")
-    public ResponseEntity<BlogEntryResponseDto> getBlogEntry(@PathVariable Integer id) {
-        Optional<BlogEntryResponseDto> blogEntry = blogEntryService.getBlogEntryById(id);
+    public ResponseEntity<BlogEntryResponseDto> getBlogEntry(@PathVariable Integer id, Principal principal) {
+        Optional<BlogEntryResponseDto> blogEntry = blogEntryService.getBlogEntryById(id, principal.getName());
 
         logger.debug("blogEntry optional: {}", blogEntry);
-
         if (blogEntry.isPresent()) {
             return ResponseEntity.ok(blogEntry.get());
         }
@@ -42,17 +42,17 @@ public class BlogEntryController {
 
 
     @GetMapping("/posts")
-    public ResponseEntity<List<BlogEntryResponseDto>> getBlogEntries(Pageable pageable) {
-        return ResponseEntity.ok(blogEntryService.getBlogEntries(pageable));
+    public ResponseEntity<List<BlogEntryResponseDto>> getAllPublicBlogEntries(Pageable pageable) {
+        return ResponseEntity.ok(blogEntryService.getAllPublicBlogEntries(pageable));
     }
 
 
-    // ToDo: need to add principle to get "author" & validate BlogEntryRequestDto fields...
+    // ToDo: need to validate BlogEntryRequestDto fields (in service layer)...
     @PostMapping("/posts")
     public ResponseEntity<Void> createBlogEntry(@RequestBody BlogEntryRequestDto blogEntryRequestDto,
-                                                /*Principal principal,*/ UriComponentsBuilder ucb) {
+                                                Principal principal, UriComponentsBuilder ucb) {
 
-        BlogEntry blogEntryToSave = blogEntryService.saveEntry(blogEntryRequestDto, "TestUser");
+        BlogEntry blogEntryToSave = blogEntryService.saveEntry(blogEntryRequestDto, principal.getName());
 
         URI location = ucb.path("/api/posts/{id}").buildAndExpand(blogEntryToSave.getId()).toUri();
 

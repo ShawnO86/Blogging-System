@@ -30,7 +30,9 @@ public class BlogEntryControllerTest {
     @Test
     @DisplayName("1. found id")
     void getBlogEntryById() {
-        ResponseEntity<String> response = restTemplate.getForEntity("/api/posts/1", String.class);
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("TestUser", "TestPassword")
+                .getForEntity("/api/posts/1", String.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return 200 OK");
 
@@ -50,7 +52,9 @@ public class BlogEntryControllerTest {
     @Test
     @DisplayName("2. not found id")
     void notFoundBlogEntryById() {
-        ResponseEntity<String> response = restTemplate.getForEntity("/api/posts/99", String.class);
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("TestUser", "TestPassword")
+                .getForEntity("/api/posts/99", String.class);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode(), "Should return 404 NOT FOUND");
         System.out.println("response: " + response);
@@ -68,12 +72,16 @@ public class BlogEntryControllerTest {
                         List.of("Test Category 1", "Test Category 2"),
                         true
         );
-        ResponseEntity<Void> response = restTemplate.postForEntity("/api/posts", blogEntryRequestDto, Void.class);
+        ResponseEntity<Void> response = restTemplate
+                .withBasicAuth("TestUser", "TestPassword")
+                .postForEntity("/api/posts", blogEntryRequestDto, Void.class);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode(), "Should return 201 Created");
 
         URI uri = response.getHeaders().getLocation();
-        ResponseEntity<String> getResponse = restTemplate.getForEntity(uri, String.class);
+        ResponseEntity<String> getResponse = restTemplate
+                .withBasicAuth("TestUser", "TestPassword")
+                .getForEntity(uri, String.class);
 
         DocumentContext documentContext = JsonPath.parse(getResponse.getBody());
 
@@ -90,9 +98,12 @@ public class BlogEntryControllerTest {
     }
 
     @Test
-    @DisplayName("4. should return all BlogEntries")
-    void getAllBlogEntries() {
-        ResponseEntity<String> response = restTemplate.getForEntity("/api/posts?sort=createdAt,asc", String.class);
+    @DisplayName("4. should return all public BlogEntries")
+    void getAllPublicBlogEntries() {
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("TestUser", "TestPassword")
+                .getForEntity("/api/posts?sort=createdAt,asc", String.class);
+
         assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return 200 OK");
         System.out.println("response: " + response.getBody());
 
@@ -101,17 +112,20 @@ public class BlogEntryControllerTest {
         JSONArray ids = documentContext.read("$..id");
         JSONArray titles = documentContext.read("$..title");
 
-        assertEquals(3, ids.size());
-        assertEquals(List.of(1, 2, 3), ids);
+        // Entry with id 2 is private and should not be included
+        assertEquals(2, ids.size());
+        assertEquals(List.of(1, 3), ids);
 
-        assertEquals(3, titles.size());
-        assertEquals(List.of("Test Post 1", "Test Post 2", "Test Post 3"), titles);
+        assertEquals(2, titles.size());
+        assertEquals(List.of("Test Post 1", "Test Post 3"), titles);
     }
 
     @Test
     @DisplayName("5. should return page of BlogEntry")
     void getBlogEntryAsPage() {
-        ResponseEntity<String> response = restTemplate.getForEntity("/api/posts?page=0&size=1", String.class);
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("TestUser", "TestPassword")
+                .getForEntity("/api/posts?page=0&size=1", String.class);
         assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return 200 OK");
         System.out.println("response: " + response.getBody());
     }
@@ -119,7 +133,9 @@ public class BlogEntryControllerTest {
     @Test
     @DisplayName("6. should return sorted page of BlogEntries (last entry by date id=3")
     void getBlogEntryAsSortedPage() {
-        ResponseEntity<String> response = restTemplate.getForEntity("/api/posts?page=0&size=1&sort=createdAt,desc", String.class);
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("TestUser", "TestPassword")
+                .getForEntity("/api/posts?page=0&size=1&sort=createdAt,desc", String.class);
         assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return 200 OK");
 
         DocumentContext documentContext = JsonPath.parse(response.getBody());
@@ -132,18 +148,52 @@ public class BlogEntryControllerTest {
     @Test
     @DisplayName("7. should return sorted page using default pageable (descending sort by updatedAt)")
     void getBlogEntryAsSortedPageUsingDefaultPageable() {
-        ResponseEntity<String> response = restTemplate.getForEntity("/api/posts", String.class);
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("TestUser", "TestPassword")
+                .getForEntity("/api/posts", String.class);
+
         assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return 200 OK");
 
         DocumentContext documentContext = JsonPath.parse(response.getBody());
         JSONArray ids = documentContext.read("$..id");
         JSONArray titles = documentContext.read("$..title");
 
-        assertEquals(3, ids.size());
-        assertEquals(List.of(3, 2, 1), ids);
+        // Entry with id 2 is private and should not be included
+        assertEquals(2, ids.size());
+        assertEquals(List.of(3, 1), ids);
 
-        assertEquals(3, titles.size());
-        assertEquals(List.of("Test Post 3", "Test Post 2", "Test Post 1"), titles);
+        assertEquals(2, titles.size());
+        assertEquals(List.of("Test Post 3", "Test Post 1"), titles);
+    }
+
+    @Test
+    @DisplayName("8. should not return entry using bad credentials")
+    void blogEntryWithBadCredentials() {
+        // wrong user, existing password
+        ResponseEntity<String> response1 = restTemplate
+                .withBasicAuth("NotAUser", "TestPassword")
+                .getForEntity("/api/posts/1", String.class);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response1.getStatusCode(), "Should return 401 UNAUTHORIZED");
+
+        // right user, wrong password
+        ResponseEntity<String> response2 = restTemplate
+                .withBasicAuth("TestUser", "BadPassword")
+                .getForEntity("/api/posts/1", String.class);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response2.getStatusCode(), "Should return 401 UNAUTHORIZED");
+    }
+
+    @Test
+    @DisplayName("9. should not allow private entry to be viewed by non-author")
+    void getBlogEntryWithNonAuthor() {
+        // test data = BlogEntry with id 2 is private and owned by TestAdmin.
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("TestUser", "TestPassword")
+                .getForEntity("/api/posts/2", String.class);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode(), "Should return 403 FORBIDDEN");
+        System.out.println("response: " + response);
     }
 
 }

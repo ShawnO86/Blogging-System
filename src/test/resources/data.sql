@@ -22,7 +22,7 @@ VALUES
 INSERT INTO Blog_Entries(title, date_published, date_updated, content, is_public, author_id)
 VALUES
     ('Test Post 1', '2025-09-30', '2025-09-30','Test Post 1 - TestAdmin content is here.',TRUE, 1),
-    ('Test Post 2', '2025-10-02', '2025-10-03', 'Test Post 2 - TestAdmin content is here.',TRUE, 1),
+    ('Test Post 2', '2025-10-02', '2025-10-03', 'Test Post 2 - TestAdmin content is here.',FALSE, 1),
     ('Test Post 3', '2025-10-03', '2025-10-05','Test Post 3 - TestUser content is here.',TRUE, 2);
 
 INSERT INTO Posts_Categories(post_id, category_id)

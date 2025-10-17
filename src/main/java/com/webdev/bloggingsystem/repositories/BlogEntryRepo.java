@@ -21,7 +21,6 @@ public interface BlogEntryRepo extends CrudRepository<BlogEntry, Integer>, Pagin
     Optional<BlogEntry> findBlogEntryByIdEagerLoadAll(@Param("id") Integer id);
 
     @EntityGraph(value = "fetch-with-pageable", type = EntityGraph.EntityGraphType.LOAD)
-    @Override
     @NonNull
-    Page<BlogEntry> findAll(@NonNull Pageable pageable);
+    Page<BlogEntry> findAllByIsPublicTrue(@NonNull Pageable pageable);
 }
