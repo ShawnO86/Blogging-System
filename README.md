@@ -1,4 +1,4 @@
-# Blogging System REST API
+# Blogging System REST API 
 
 ## Goals
 1. To gain more experience and deeper understanding of REST API best practices and conventions.
@@ -56,19 +56,19 @@ Planned Authorities - `USER` (basic user/author) and `ADMIN` (administrator)
 
 | Resource   | HTTP Method | Endpoint                                  | Description                                                                                                                             | Access Role           |
 |:-----------|:------------|:------------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------|:----------------------|
-| BlogEntry  | `GET`       | `/api/posts`                              | Retrieve all entries (with optional filters - category_id, user_id, date_updated, and/or pagination).                                   | `PUBLIC, USER, ADMIN` |
-| BlogEntry | `GET`       | `/api/posts/{id}`                         | Retrieve a entry by id.                                                                                                                 | `PUBLIC, USER, ADMIN` |
+| BlogEntry  | `GET`       | `/api/posts`                              | Retrieve all entries (with optional filters - category_id, user_id, date_updated, and/or pagination).                                   | `USER, ADMIN`         |
+| BlogEntry | `GET`       | `/api/posts/{id}`                         | Retrieve a entry by id.                                                                                                                 | `USER, ADMIN`         |
 | BlogEntry | `POST`      | `/api/posts`                              | Create a new entry.                                                                                                                     | `USER, ADMIN`         |                                        
 | BlogEntry | `PUT`       | `/api/posts/{id}`                         | Update an entry.                                                                                                                        | `AUTHOR(USER), ADMIN` |
 | BlogEntry | `DELETE`    | `/api/posts/{id}`                         | Delete an entry.                                                                                                                        | `AUTHOR(USER), ADMIN` |
-| Comment    | `GET`       | `/api/posts/{id}/comments`                | Get all top-level comments for entry.                                                                                                   | `PUBLIC, USER, ADMIN` |
-| Comment    | `GET`       | `/api/comments/{parentCommentId}/replies` | Get all replies to a specific comment (lazy load).                                                                                      | `PUBLIC, USER, ADMIN` |
+| Comment    | `GET`       | `/api/posts/{id}/comments`                | Get all top-level comments for entry.                                                                                                   | `USER, ADMIN`         |
+| Comment    | `GET`       | `/api/comments/{parentCommentId}/replies` | Get all replies to a specific comment (lazy load).                                                                                      | `USER, ADMIN`         |
 | Comment    | `POST`      | `/api/posts/{id}/comments`                | Create a new comment (optional parentCommentId for creating a reply).                                                                   | `USER, ADMIN`         |
 | Comment    | `DELETE`    | `/api/comments/{id}`                      | Delete a comment (Requires Entry Author or Admin role - Comment Author not allowed to delete due to cascade delete of unowned replies). | `AUTHOR(USER), ADMIN` |
 | AppUser    | `POST`      | `/api/auth/register`                      | Register a new user account.                                                                                                            | `PUBLIC`              |
 | AppUser    | `POST`      | `/api/auth/login`                         | Authenticate user and receive a JWT.                                                                                                    | `PUBLIC`              |
-| Category   | `GET`       | `/api/categories`                         | Get all categories.                                                                                                                     | `PUBLIC`              |
+| Category   | `GET`       | `/api/categories`                         | Get all categories.                                                                                                                     | `USER, ADMIN`         |
 | Category   | `POST`      | `/api/categories`                         | Create a new category.                                                                                                                  | `ADMIN`               |
 | Category   | `PUT`       | `/api/categories/{id}`                    | Update a category.                                                                                                                      | `ADMIN`               |
-| Category   | `DELETE`     | `/api/categories/{id}`                     | Delete a category.                                                                                                                      | `ADMIN`             |
+| Category   | `DELETE`     | `/api/categories/{id}`                     | Delete a category.                                                                                                                      | `ADMIN`               |
 |            |             |                                           |                                                                                                                                         |                       |
