@@ -8,6 +8,8 @@ import net.minidev.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
@@ -16,7 +18,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -108,7 +109,7 @@ public class BlogEntryControllerTest {
         System.out.println("response: " + response.getBody());
 
         DocumentContext documentContext = JsonPath.parse(response.getBody());
-        // double . to return list of all values of specified key ..
+        // double . to return list of all values of specified key
         JSONArray ids = documentContext.read("$..id");
         JSONArray titles = documentContext.read("$..title");
 
@@ -153,14 +154,16 @@ public class BlogEntryControllerTest {
                 .getForEntity("/api/posts", String.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return 200 OK");
-
+        System.out.println("response: " + response.getBody());
         DocumentContext documentContext = JsonPath.parse(response.getBody());
         JSONArray ids = documentContext.read("$..id");
         JSONArray titles = documentContext.read("$..title");
+        int totalElements = documentContext.read("$.totalEntries");
 
         // Entry with id 2 is private and should not be included
         assertEquals(2, ids.size());
         assertEquals(List.of(3, 1), ids);
+        assertEquals(2, totalElements);
 
         assertEquals(2, titles.size());
         assertEquals(List.of("Test Post 3", "Test Post 1"), titles);
@@ -194,6 +197,33 @@ public class BlogEntryControllerTest {
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode(), "Should return 403 FORBIDDEN");
         System.out.println("response: " + response);
+    }
+
+    @Test
+    @DisplayName("10. should update existing entry")
+    void updateExistingEntry() {
+        BlogEntryRequestDto entryToUpdate = new BlogEntryRequestDto(
+                "Updated Test Post 3",
+                null,
+                null,
+                null
+        );
+        HttpEntity<BlogEntryRequestDto> request = new HttpEntity<>(entryToUpdate);
+        ResponseEntity<Void> response = restTemplate
+                .withBasicAuth("TestUser", "TestPassword")
+                .exchange("/api/posts/3", HttpMethod.PUT, request, Void.class);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode(), "Should return NO CONTENT");
+
+        ResponseEntity<String> getResponse = restTemplate
+                .withBasicAuth("TestUser", "TestPassword")
+                .getForEntity("/api/posts/3", String.class);
+
+        DocumentContext documentContext = JsonPath.parse(getResponse.getBody());
+        Number id = documentContext.read("$.id");
+        String title = documentContext.read("$.title");
+        assertEquals(3, id);
+        assertEquals("Updated Test Post 3", title);
     }
 
 }

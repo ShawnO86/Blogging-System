@@ -6,5 +6,5 @@ public record BlogEntryRequestDto(
         String title,
         String content,
         List<String> categories,
-        boolean isPublic
+        Boolean isPublic
 ) {}

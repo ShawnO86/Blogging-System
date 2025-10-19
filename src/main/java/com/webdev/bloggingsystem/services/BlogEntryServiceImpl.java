@@ -5,6 +5,7 @@ import com.webdev.bloggingsystem.entities.BlogEntry;
 import com.webdev.bloggingsystem.entities.BlogEntryRequestDto;
 import com.webdev.bloggingsystem.entities.BlogEntryResponseDto;
 import com.webdev.bloggingsystem.entities.Category;
+import com.webdev.bloggingsystem.entities.PaginatedblogEntriesResponseDto;
 import com.webdev.bloggingsystem.repositories.AppUserRepo;
 import com.webdev.bloggingsystem.repositories.BlogEntryRepo;
 import com.webdev.bloggingsystem.repositories.CategoryRepo;
@@ -49,7 +50,7 @@ public class BlogEntryServiceImpl implements BlogEntryService {
     }
 
     @Override
-    public List<BlogEntryResponseDto> getAllPublicBlogEntries(Pageable pageable) {
+    public PaginatedblogEntriesResponseDto getAllPublicBlogEntries(Pageable pageable) {
         // default is descending sort by updatedAt, pageSize 20, pageNumber 0
         Page<BlogEntry> blogEntries = blogEntryRepo.findAllByIsPublicTrue(
                 PageRequest.of(
@@ -58,13 +59,20 @@ public class BlogEntryServiceImpl implements BlogEntryService {
                         pageable.getSortOr(Sort.by(Sort.Direction.DESC, "updatedAt"))
                 )
         );
-        System.out.println("Pageable: " + blogEntries.getPageable());
-
         List<BlogEntryResponseDto> responseDtos = new ArrayList<>();
         for (BlogEntry blogEntry : blogEntries.getContent()) {
             responseDtos.add(new BlogEntryResponseDto(blogEntry, false));
         }
-        return responseDtos;
+
+        return new PaginatedblogEntriesResponseDto(
+                responseDtos,
+                blogEntries.getNumber(),
+                blogEntries.getSize(),
+                blogEntries.getTotalPages(),
+                blogEntries.getTotalElements(),
+                blogEntries.isLast(),
+                blogEntries.isFirst()
+        );
     }
 
     // todo: validate entry before saving.

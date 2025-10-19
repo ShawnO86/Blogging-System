@@ -3,6 +3,7 @@ package com.webdev.bloggingsystem.controllers;
 import com.webdev.bloggingsystem.entities.BlogEntry;
 import com.webdev.bloggingsystem.entities.BlogEntryRequestDto;
 import com.webdev.bloggingsystem.entities.BlogEntryResponseDto;
+import com.webdev.bloggingsystem.entities.PaginatedblogEntriesResponseDto;
 import com.webdev.bloggingsystem.services.BlogEntryService;
 
 import org.slf4j.Logger;
@@ -23,11 +24,9 @@ public class BlogEntryController {
     private final static Logger logger  = LoggerFactory.getLogger(BlogEntryController.class);
     private final BlogEntryService blogEntryService;
 
-
     public BlogEntryController(BlogEntryService blogEntryService) {
         this.blogEntryService = blogEntryService;
     }
-
 
     @GetMapping("/posts/{id}")
     public ResponseEntity<BlogEntryResponseDto> getBlogEntry(@PathVariable Integer id, Principal principal) {
@@ -40,12 +39,10 @@ public class BlogEntryController {
         return ResponseEntity.notFound().build();
     }
 
-
     @GetMapping("/posts")
-    public ResponseEntity<List<BlogEntryResponseDto>> getAllPublicBlogEntries(Pageable pageable) {
+    public ResponseEntity<PaginatedblogEntriesResponseDto> getAllPublicBlogEntries(Pageable pageable) {
         return ResponseEntity.ok(blogEntryService.getAllPublicBlogEntries(pageable));
     }
-
 
     // ToDo: need to validate BlogEntryRequestDto fields (in service layer)...
     @PostMapping("/posts")
@@ -59,4 +56,14 @@ public class BlogEntryController {
         return ResponseEntity.created(location).build();
     }
 
+    @PutMapping("/posts/{id}")
+    private ResponseEntity<Void> updateBlogEntry(@PathVariable Integer id,
+                                                 @RequestBody BlogEntryRequestDto blogEntryRequestDto,
+                                                 Principal principal) {
+
+
+
+
+        return ResponseEntity.noContent().build();
+    }
 }
