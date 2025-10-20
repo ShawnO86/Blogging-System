@@ -5,26 +5,30 @@ import com.webdev.bloggingsystem.entities.BlogEntry;
 import com.webdev.bloggingsystem.entities.BlogEntryRequestDto;
 import com.webdev.bloggingsystem.entities.BlogEntryResponseDto;
 import com.webdev.bloggingsystem.entities.Category;
-import com.webdev.bloggingsystem.entities.PaginatedblogEntriesResponseDto;
+import com.webdev.bloggingsystem.entities.PaginatedBlogEntriesResponseDto;
+import com.webdev.bloggingsystem.exceptions.ResourceNotFoundException;
 import com.webdev.bloggingsystem.repositories.AppUserRepo;
 import com.webdev.bloggingsystem.repositories.BlogEntryRepo;
 import com.webdev.bloggingsystem.repositories.CategoryRepo;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 
 @Service
 public class BlogEntryServiceImpl implements BlogEntryService {
+    private final static Logger logger  = LoggerFactory.getLogger(BlogEntryServiceImpl.class);
     private final BlogEntryRepo blogEntryRepo;
     private final AppUserRepo appUserRepo;
     private final CategoryRepo categoryRepo;
@@ -36,21 +40,19 @@ public class BlogEntryServiceImpl implements BlogEntryService {
     }
 
     @Override
-    public Optional<BlogEntryResponseDto> getBlogEntryById(Integer id, String principalName) {
-        Optional<BlogEntry> entry = blogEntryRepo.findBlogEntryByIdEagerLoadAll(id);
+    public BlogEntryResponseDto getBlogEntryById(Integer id, String principalName) {
+        BlogEntry entry = blogEntryRepo.findBlogEntryByIdEagerLoadAll(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Entry not found with id " + id));
 
-        if (entry.isPresent()) {
-            if (!entry.get().isPublic() && !entry.get().getAuthor().getUsername().equals(principalName)) {
-                throw new AccessDeniedException("Access denied");
-            } else {
-                return Optional.of(new BlogEntryResponseDto(entry.get(), true));
-            }
+        if (!entry.isPublic() && !entry.getAuthor().getUsername().equals(principalName)) {
+            throw new ResourceNotFoundException("Entry not found with id " + id);
         }
-        return Optional.empty();
+
+        return new BlogEntryResponseDto(entry, true);
     }
 
     @Override
-    public PaginatedblogEntriesResponseDto getAllPublicBlogEntries(Pageable pageable) {
+    public PaginatedBlogEntriesResponseDto getAllPublicBlogEntries(Pageable pageable) {
         // default is descending sort by updatedAt, pageSize 20, pageNumber 0
         Page<BlogEntry> blogEntries = blogEntryRepo.findAllByIsPublicTrue(
                 PageRequest.of(
@@ -59,12 +61,13 @@ public class BlogEntryServiceImpl implements BlogEntryService {
                         pageable.getSortOr(Sort.by(Sort.Direction.DESC, "updatedAt"))
                 )
         );
+
         List<BlogEntryResponseDto> responseDtos = new ArrayList<>();
         for (BlogEntry blogEntry : blogEntries.getContent()) {
             responseDtos.add(new BlogEntryResponseDto(blogEntry, false));
         }
 
-        return new PaginatedblogEntriesResponseDto(
+        return new PaginatedBlogEntriesResponseDto(
                 responseDtos,
                 blogEntries.getNumber(),
                 blogEntries.getSize(),
@@ -75,13 +78,40 @@ public class BlogEntryServiceImpl implements BlogEntryService {
         );
     }
 
-    // todo: validate entry before saving.
-    @Override
-    public BlogEntry saveEntry(BlogEntryRequestDto blogEntryRequestDto, String principleName) {
-        AppUser author = appUserRepo.findByUsername(principleName);
-        Set<Category> categories = categoryRepo.findByCategoryNameIn(blogEntryRequestDto.categories());
+    // todo: create validation logic, use before saving & updating.
 
-        return blogEntryRepo.save(this.mapRequestToEntity(blogEntryRequestDto, author, categories));
+    @Override
+    public URI saveEntry(BlogEntryRequestDto blogEntryRequestDto, String principalName, UriComponentsBuilder ucb) {
+        AppUser author = appUserRepo.findByUsername(principalName);
+        Set<Category> categories = categoryRepo.findByCategoryNameIn(blogEntryRequestDto.categories());
+        BlogEntry savedEntry = blogEntryRepo.save(this.mapRequestToEntity(blogEntryRequestDto, author, categories));
+
+        return ucb.path("/api/posts/{id}").buildAndExpand(savedEntry.getId()).toUri();
+    }
+
+    @Override
+    public void updateEntryById(Integer id, BlogEntryRequestDto blogEntryRequestDto, String principalName) {
+        logger.debug("getting entry by id {}", id);
+        BlogEntry entry = blogEntryRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Entry not found with id " + id));
+
+        if (!entry.getAuthor().getUsername().equals(principalName)) {
+            logger.debug("principal {} is not author..", principalName);
+            throw new ResourceNotFoundException("Entry not found with id " + id);
+        } else {
+            logger.debug("updating entry by id {}", id);
+            // todo: validate!
+            if (blogEntryRequestDto.title() != null) entry.setTitle(blogEntryRequestDto.title());
+            if (blogEntryRequestDto.content() != null) entry.setContent(blogEntryRequestDto.content());
+            if (blogEntryRequestDto.isPublic() != null) entry.setPublic(blogEntryRequestDto.isPublic());
+            if (blogEntryRequestDto.categories() != null) {
+                Set<Category> categories = categoryRepo.findByCategoryNameIn(blogEntryRequestDto.categories());
+                entry.setCategories(categories);
+            }
+            // found - manually update entry fields from dto
+            entry = blogEntryRepo.save(entry);
+            logger.debug("updated entry {}", entry);
+        }
     }
 
 

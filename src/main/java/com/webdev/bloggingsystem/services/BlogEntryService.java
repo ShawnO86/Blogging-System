@@ -1,17 +1,17 @@
 package com.webdev.bloggingsystem.services;
 
-import com.webdev.bloggingsystem.entities.BlogEntry;
 import com.webdev.bloggingsystem.entities.BlogEntryRequestDto;
 import com.webdev.bloggingsystem.entities.BlogEntryResponseDto;
+import com.webdev.bloggingsystem.entities.PaginatedBlogEntriesResponseDto;
 
-import com.webdev.bloggingsystem.entities.PaginatedblogEntriesResponseDto;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.Optional;
+import java.net.URI;
 
 public interface BlogEntryService {
-    Optional<BlogEntryResponseDto> getBlogEntryById(Integer id, String principalName);
-    PaginatedblogEntriesResponseDto getAllPublicBlogEntries(Pageable pageable);
-    BlogEntry saveEntry(BlogEntryRequestDto blogEntryRequestDto, String principalName);
-
+    BlogEntryResponseDto getBlogEntryById(Integer id, String principalName);
+    PaginatedBlogEntriesResponseDto getAllPublicBlogEntries(Pageable pageable);
+    URI saveEntry(BlogEntryRequestDto blogEntryRequestDto, String principalName, UriComponentsBuilder ucb);
+    void updateEntryById(Integer id, BlogEntryRequestDto blogEntryRequestDto, String principalName);
 }

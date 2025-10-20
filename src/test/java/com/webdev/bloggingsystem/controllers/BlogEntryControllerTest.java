@@ -60,7 +60,7 @@ public class BlogEntryControllerTest {
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode(), "Should return 404 NOT FOUND");
         System.out.println("response: " + response);
 
-        assertNull(response.getBody());
+        assertEquals("Entry not found with id 99", response.getBody());
     }
 
     @Test
@@ -141,7 +141,7 @@ public class BlogEntryControllerTest {
 
         DocumentContext documentContext = JsonPath.parse(response.getBody());
         System.out.println("json: " + documentContext.jsonString());
-        String title  = documentContext.read("$[0].title");
+        String title  = documentContext.read("$.entries[0].title");
 
         assertEquals("Test Post 3", title);
     }
@@ -195,12 +195,13 @@ public class BlogEntryControllerTest {
                 .withBasicAuth("TestUser", "TestPassword")
                 .getForEntity("/api/posts/2", String.class);
 
-        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode(), "Should return 403 FORBIDDEN");
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode(), "Should return 404 NOT FOUND");
         System.out.println("response: " + response);
     }
 
     @Test
     @DisplayName("10. should update existing entry")
+    @DirtiesContext // <-- needed to restart application after changing data so tests stay consistent with data.sql
     void updateExistingEntry() {
         BlogEntryRequestDto entryToUpdate = new BlogEntryRequestDto(
                 "Updated Test Post 3",
@@ -209,6 +210,7 @@ public class BlogEntryControllerTest {
                 null
         );
         HttpEntity<BlogEntryRequestDto> request = new HttpEntity<>(entryToUpdate);
+        // putForEntity does not exist.
         ResponseEntity<Void> response = restTemplate
                 .withBasicAuth("TestUser", "TestPassword")
                 .exchange("/api/posts/3", HttpMethod.PUT, request, Void.class);
@@ -224,6 +226,38 @@ public class BlogEntryControllerTest {
         String title = documentContext.read("$.title");
         assertEquals(3, id);
         assertEquals("Updated Test Post 3", title);
+    }
+
+    @Test
+    @DisplayName("11. should not update non-existent entry")
+    void updateNonExistingEntry() {
+        BlogEntryRequestDto entryToUpdate = new BlogEntryRequestDto(
+                "Updated Non Existent Test Post",
+                null,
+                null,
+                null
+        );
+        HttpEntity<BlogEntryRequestDto> request = new HttpEntity<>(entryToUpdate);
+        ResponseEntity<Void> response = restTemplate
+                .withBasicAuth("TestUser", "TestPassword")
+                .exchange("/api/posts/99", HttpMethod.PUT, request, Void.class);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode(), "Should return 404 NOT FOUND");
+    }
+
+    @Test
+    @DisplayName("12. should not update entry if non-author")
+    void updateNonAuthorEntry() {
+        BlogEntryRequestDto entryToUpdate = new BlogEntryRequestDto(
+                "Updated Non Existent Test Post",
+                null,
+                null,
+                null
+        );
+        HttpEntity<BlogEntryRequestDto> request = new HttpEntity<>(entryToUpdate);
+        ResponseEntity<Void> response = restTemplate
+                .withBasicAuth("TestUser", "TestPassword")
+                .exchange("/api/posts/1", HttpMethod.PUT, request, Void.class);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode(), "Should return 404 NOT FOUND");
     }
 
 }

@@ -3,20 +3,25 @@ package com.webdev.bloggingsystem.controllers;
 import com.webdev.bloggingsystem.entities.BlogEntry;
 import com.webdev.bloggingsystem.entities.BlogEntryRequestDto;
 import com.webdev.bloggingsystem.entities.BlogEntryResponseDto;
-import com.webdev.bloggingsystem.entities.PaginatedblogEntriesResponseDto;
+import com.webdev.bloggingsystem.entities.PaginatedBlogEntriesResponseDto;
 import com.webdev.bloggingsystem.services.BlogEntryService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.security.Principal;
-import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -30,17 +35,13 @@ public class BlogEntryController {
 
     @GetMapping("/posts/{id}")
     public ResponseEntity<BlogEntryResponseDto> getBlogEntry(@PathVariable Integer id, Principal principal) {
-        Optional<BlogEntryResponseDto> blogEntry = blogEntryService.getBlogEntryById(id, principal.getName());
 
-        logger.debug("blogEntry optional: {}", blogEntry);
-        if (blogEntry.isPresent()) {
-            return ResponseEntity.ok(blogEntry.get());
-        }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(blogEntryService.getBlogEntryById(id, principal.getName()));
     }
 
     @GetMapping("/posts")
-    public ResponseEntity<PaginatedblogEntriesResponseDto> getAllPublicBlogEntries(Pageable pageable) {
+    public ResponseEntity<PaginatedBlogEntriesResponseDto> getAllPublicBlogEntries(Pageable pageable) {
+
         return ResponseEntity.ok(blogEntryService.getAllPublicBlogEntries(pageable));
     }
 
@@ -49,9 +50,7 @@ public class BlogEntryController {
     public ResponseEntity<Void> createBlogEntry(@RequestBody BlogEntryRequestDto blogEntryRequestDto,
                                                 Principal principal, UriComponentsBuilder ucb) {
 
-        BlogEntry blogEntryToSave = blogEntryService.saveEntry(blogEntryRequestDto, principal.getName());
-
-        URI location = ucb.path("/api/posts/{id}").buildAndExpand(blogEntryToSave.getId()).toUri();
+        URI location = blogEntryService.saveEntry(blogEntryRequestDto, principal.getName(), ucb);
 
         return ResponseEntity.created(location).build();
     }
@@ -61,8 +60,7 @@ public class BlogEntryController {
                                                  @RequestBody BlogEntryRequestDto blogEntryRequestDto,
                                                  Principal principal) {
 
-
-
+        blogEntryService.updateEntryById(id, blogEntryRequestDto, principal.getName());
 
         return ResponseEntity.noContent().build();
     }

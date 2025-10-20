@@ -2,8 +2,8 @@ package com.webdev.bloggingsystem.entities;
 
 import java.util.List;
 
-public record PaginatedblogEntriesResponseDto(
-        List<BlogEntryResponseDto> content,
+public record PaginatedBlogEntriesResponseDto(
+        List<BlogEntryResponseDto> entries,
         int pageNumber,
         int pageSize,
         int totalPages,
