@@ -44,6 +44,8 @@ public class BlogEntryServiceImpl implements BlogEntryService {
         BlogEntry entry = blogEntryRepo.findBlogEntryByIdEagerLoadAll(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Entry not found with id " + id));
 
+        // could use repo to make this check - but, want to be able to allow author to view their private entries,
+        // it may reduce query performance slightly using additional Where clauses for isPublic and author name
         if (!entry.isPublic() && !entry.getAuthor().getUsername().equals(principalName)) {
             throw new ResourceNotFoundException("Entry not found with id " + id);
         }
@@ -96,7 +98,7 @@ public class BlogEntryServiceImpl implements BlogEntryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Entry not found with id " + id));
 
         if (!entry.getAuthor().getUsername().equals(principalName)) {
-            logger.debug("principal {} is not author..", principalName);
+            logger.debug("principal {} is not author ++ dont need this anymore??? ", principalName);
             throw new ResourceNotFoundException("Entry not found with id " + id);
         } else {
             logger.debug("updating entry by id {}", id);
@@ -112,6 +114,15 @@ public class BlogEntryServiceImpl implements BlogEntryService {
             entry = blogEntryRepo.save(entry);
             logger.debug("updated entry {}", entry);
         }
+    }
+
+    @Override
+    public void deleteEntryById(Integer id, String principalName) {
+        logger.debug("getting entry by id {} and author name {}", id, principalName);
+        BlogEntry entryToDelete = blogEntryRepo.findBlogEntryByIdAndAuthorName(id, principalName)
+                .orElseThrow(() -> new ResourceNotFoundException("Entry not found with id " + id));
+
+        blogEntryRepo.deleteById(entryToDelete.getId());
     }
 
 

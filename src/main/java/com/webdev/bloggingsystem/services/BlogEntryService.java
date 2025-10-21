@@ -14,4 +14,5 @@ public interface BlogEntryService {
     PaginatedBlogEntriesResponseDto getAllPublicBlogEntries(Pageable pageable);
     URI saveEntry(BlogEntryRequestDto blogEntryRequestDto, String principalName, UriComponentsBuilder ucb);
     void updateEntryById(Integer id, BlogEntryRequestDto blogEntryRequestDto, String principalName);
+    void deleteEntryById(Integer id, String principalName);
 }

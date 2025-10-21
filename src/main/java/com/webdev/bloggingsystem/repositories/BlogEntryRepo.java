@@ -13,6 +13,14 @@ import org.springframework.lang.NonNull;
 import java.util.Optional;
 
 public interface BlogEntryRepo extends CrudRepository<BlogEntry, Integer>, PagingAndSortingRepository<BlogEntry, Integer> {
+    // does not need to join categories - only looking for ownership
+    @Query("SELECT b FROM BlogEntry b " +
+            "JOIN FETCH b.author " +
+            "LEFT JOIN FETCH b.categories " +
+            "LEFT JOIN FETCH b.comments " +
+            "WHERE b.id = :id AND b.author.username = :author")
+    Optional<BlogEntry> findBlogEntryByIdAndAuthorName(@Param("id") Integer id, @Param("author") String author);
+
     @Query("SELECT b FROM BlogEntry b " +
         "JOIN FETCH b.author " +
         "LEFT JOIN FETCH b.categories " +

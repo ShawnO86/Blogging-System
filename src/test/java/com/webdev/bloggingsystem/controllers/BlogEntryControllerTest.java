@@ -215,7 +215,7 @@ public class BlogEntryControllerTest {
                 .withBasicAuth("TestUser", "TestPassword")
                 .exchange("/api/posts/3", HttpMethod.PUT, request, Void.class);
 
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode(), "Should return NO CONTENT");
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode(), "Should return 204 NO CONTENT");
 
         ResponseEntity<String> getResponse = restTemplate
                 .withBasicAuth("TestUser", "TestPassword")
@@ -258,6 +258,51 @@ public class BlogEntryControllerTest {
                 .withBasicAuth("TestUser", "TestPassword")
                 .exchange("/api/posts/1", HttpMethod.PUT, request, Void.class);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode(), "Should return 404 NOT FOUND");
+    }
+
+    @Test
+    @DisplayName("13. should delete entry")
+    @DirtiesContext
+    void deleteEntry() {
+        System.out.println("attempting to delete entry");
+        ResponseEntity<Void> response = restTemplate
+                .withBasicAuth("TestUser", "TestPassword")
+                .exchange("/api/posts/3", HttpMethod.DELETE, null, Void.class);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode(), "Should return 204 NO CONTENT");
+
+        System.out.println("checking for deleted entry");
+        ResponseEntity<String> getResponse = restTemplate
+                .withBasicAuth("TestUser", "TestPassword")
+                .getForEntity("/api/posts/3", String.class);
+
+        assertEquals(HttpStatus.NOT_FOUND, getResponse.getStatusCode(), "Should return 404 NOT FOUND");
+    }
+
+    @Test
+    @DisplayName("14. should not delete non-existent entry")
+    void deleteNonExistentEntry() {
+        ResponseEntity<Void> response = restTemplate
+                .withBasicAuth("TestUser2", "TestPassword")
+                .exchange("/api/posts/99", HttpMethod.DELETE, null, Void.class);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode(), "Should return 404 NOT FOUND");
+    }
+
+    @Test
+    @DisplayName("15. should not delete entry if non-author")
+    void deleteNonAuthorEntry() {
+        ResponseEntity<Void> response = restTemplate
+                .withBasicAuth("TestUser2", "TestPassword")
+                .exchange("/api/posts/3", HttpMethod.DELETE, null, Void.class);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode(), "Should return 404 NOT FOUND");
+
+        ResponseEntity<String> getResponse = restTemplate
+                .withBasicAuth("TestUser", "TestPassword")
+                .getForEntity("/api/posts/3", String.class);
+
+        assertEquals(HttpStatus.OK, getResponse.getStatusCode(), "Should return 200 OK");
     }
 
 }
