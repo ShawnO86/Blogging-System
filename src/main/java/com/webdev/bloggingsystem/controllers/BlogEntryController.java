@@ -5,9 +5,6 @@ import com.webdev.bloggingsystem.entities.BlogEntryResponseDto;
 import com.webdev.bloggingsystem.entities.PaginatedBlogEntriesResponseDto;
 import com.webdev.bloggingsystem.services.BlogEntryService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.data.domain.Pageable;
@@ -18,12 +15,12 @@ import java.security.Principal;
 @RestController
 @RequestMapping("/api")
 public class BlogEntryController {
-    private final static Logger logger  = LoggerFactory.getLogger(BlogEntryController.class);
     private final BlogEntryService blogEntryService;
 
     public BlogEntryController(BlogEntryService blogEntryService) {
         this.blogEntryService = blogEntryService;
     }
+    // todo : look out for any n+1 issues here..
 
     @GetMapping("/posts/{id}")
     public ResponseEntity<BlogEntryResponseDto> getBlogEntry(@PathVariable Integer id, Principal principal) {
@@ -50,7 +47,6 @@ public class BlogEntryController {
         return ResponseEntity.noContent().build();
     }
 
-    // todo : figure out the n+1 issue here..
     @DeleteMapping("/posts/{id}")
     public ResponseEntity<Void> deleteBlogEntry(@PathVariable Integer id, Principal principal) {
         blogEntryService.deleteEntryById(id, principal.getName());

@@ -11,6 +11,7 @@ import com.webdev.bloggingsystem.repositories.AppUserRepo;
 import com.webdev.bloggingsystem.repositories.BlogEntryRepo;
 import com.webdev.bloggingsystem.repositories.CategoryRepo;
 
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -41,15 +42,15 @@ public class BlogEntryServiceImpl implements BlogEntryService {
 
     @Override
     public BlogEntryResponseDto getBlogEntryById(Integer id, String principalName) {
-        BlogEntry entry = blogEntryRepo.findBlogEntryByIdEagerLoadAll(id)
+        logger.debug("getBlogEntryById: findBlogEntryById");
+        BlogEntry entry = blogEntryRepo.findBlogEntryById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Entry not found with id " + id));
-
-        // could use repo to make this check - but, want to be able to allow author to view their private entries,
-        // it may reduce query performance slightly using additional Where clauses for isPublic and author name
+        // could use repo to make this check - but, want to be able to allow author to view their own private entries,
+        logger.debug("getBlogEntryById: checking author against principal");
         if (!entry.isPublic() && !entry.getAuthor().getUsername().equals(principalName)) {
             throw new ResourceNotFoundException("Entry not found with id " + id);
         }
-
+        logger.debug("getBlogEntryById: calling/building response dto");
         return new BlogEntryResponseDto(entry, true);
     }
 
@@ -84,8 +85,11 @@ public class BlogEntryServiceImpl implements BlogEntryService {
 
     @Override
     public URI saveEntry(BlogEntryRequestDto blogEntryRequestDto, String principalName, UriComponentsBuilder ucb) {
+        logger.debug("saveEntry: getting author");
         AppUser author = appUserRepo.findByUsername(principalName);
+        logger.debug("saveEntry: getting categories");
         Set<Category> categories = categoryRepo.findByCategoryNameIn(blogEntryRequestDto.categories());
+        logger.debug("saveEntry: saving entry");
         BlogEntry savedEntry = blogEntryRepo.save(this.mapRequestToEntity(blogEntryRequestDto, author, categories));
 
         return ucb.path("/api/posts/{id}").buildAndExpand(savedEntry.getId()).toUri();
@@ -93,36 +97,35 @@ public class BlogEntryServiceImpl implements BlogEntryService {
 
     @Override
     public void updateEntryById(Integer id, BlogEntryRequestDto blogEntryRequestDto, String principalName) {
-        logger.debug("getting entry by id {}", id);
-        BlogEntry entry = blogEntryRepo.findById(id)
+        logger.debug("updateEntryById: getting entry by id {}", id);
+        BlogEntry entry = blogEntryRepo.findBlogEntryByIdAndAuthorUsername(id, principalName)
                 .orElseThrow(() -> new ResourceNotFoundException("Entry not found with id " + id));
 
-        if (!entry.getAuthor().getUsername().equals(principalName)) {
-            logger.debug("principal {} is not author ++ dont need this anymore??? ", principalName);
-            throw new ResourceNotFoundException("Entry not found with id " + id);
-        } else {
-            logger.debug("updating entry by id {}", id);
-            // todo: validate!
-            if (blogEntryRequestDto.title() != null) entry.setTitle(blogEntryRequestDto.title());
-            if (blogEntryRequestDto.content() != null) entry.setContent(blogEntryRequestDto.content());
-            if (blogEntryRequestDto.isPublic() != null) entry.setPublic(blogEntryRequestDto.isPublic());
-            if (blogEntryRequestDto.categories() != null) {
-                Set<Category> categories = categoryRepo.findByCategoryNameIn(blogEntryRequestDto.categories());
-                entry.setCategories(categories);
-            }
-            // found - manually update entry fields from dto
-            entry = blogEntryRepo.save(entry);
-            logger.debug("updated entry {}", entry);
+        logger.debug("updating entry by id {}", id);
+        // todo: validate input!!!
+        // manually update entry fields from dto
+        if (blogEntryRequestDto.title() != null) entry.setTitle(blogEntryRequestDto.title());
+        if (blogEntryRequestDto.content() != null) entry.setContent(blogEntryRequestDto.content());
+        if (blogEntryRequestDto.isPublic() != null) entry.setPublic(blogEntryRequestDto.isPublic());
+        if (blogEntryRequestDto.categories() != null) {
+            Set<Category> categories = categoryRepo.findByCategoryNameIn(blogEntryRequestDto.categories());
+            entry.setCategories(categories);
         }
+        blogEntryRepo.save(entry);
     }
 
+    @Transactional
     @Override
     public void deleteEntryById(Integer id, String principalName) {
-        logger.debug("getting entry by id {} and author name {}", id, principalName);
-        BlogEntry entryToDelete = blogEntryRepo.findBlogEntryByIdAndAuthorName(id, principalName)
+        logger.debug("deleteEntryById: getting entry by id {} and author name {}", id, principalName);
+        BlogEntry entryToDelete = blogEntryRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Entry not found with id " + id));
 
-        blogEntryRepo.deleteById(entryToDelete.getId());
+        if (!entryToDelete.getAuthor().getUsername().equals(principalName)) {
+            throw new ResourceNotFoundException("Entry not found with id " + id);
+        }
+
+        blogEntryRepo.betterDeleteById(entryToDelete.getId());
     }
 
 

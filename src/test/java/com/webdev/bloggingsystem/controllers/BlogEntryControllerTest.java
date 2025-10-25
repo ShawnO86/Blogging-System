@@ -5,6 +5,7 @@ import com.webdev.bloggingsystem.entities.BlogEntryRequestDto;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import net.minidev.json.JSONArray;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -12,10 +13,9 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.util.List;
@@ -27,6 +27,17 @@ import static org.junit.jupiter.api.Assertions.*;
 public class BlogEntryControllerTest {
     @Autowired
     private TestRestTemplate restTemplate;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+    private Integer countJoinTableEntries(Integer postId) {
+        // for join table with no repository, only used to check if cascade works when deleting Entry
+        return jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM Posts_Categories WHERE post_id = ?",
+                Integer.class,
+                postId
+        );
+    }
 
     @Test
     @DisplayName("1. found id")
@@ -80,6 +91,7 @@ public class BlogEntryControllerTest {
         assertEquals(HttpStatus.CREATED, response.getStatusCode(), "Should return 201 Created");
 
         URI uri = response.getHeaders().getLocation();
+        System.out.println("Fetching entry from URI: " + uri);
         ResponseEntity<String> getResponse = restTemplate
                 .withBasicAuth("TestUser", "TestPassword")
                 .getForEntity(uri, String.class);
@@ -199,14 +211,14 @@ public class BlogEntryControllerTest {
         System.out.println("response: " + response);
     }
 
+    // n+1 happening but not in update method... only in the context of tests??
     @Test
     @DisplayName("10. should update existing entry")
-    @DirtiesContext // <-- needed to restart application after changing data so tests stay consistent with data.sql
     void updateExistingEntry() {
         BlogEntryRequestDto entryToUpdate = new BlogEntryRequestDto(
                 "Updated Test Post 3",
                 null,
-                null,
+                List.of("Test Category 1","Test Category 2"),
                 null
         );
         HttpEntity<BlogEntryRequestDto> request = new HttpEntity<>(entryToUpdate);
@@ -303,6 +315,24 @@ public class BlogEntryControllerTest {
                 .getForEntity("/api/posts/3", String.class);
 
         assertEquals(HttpStatus.OK, getResponse.getStatusCode(), "Should return 200 OK");
+    }
+
+    @Test
+    @DisplayName("16. category join table should be cascaded on delete")
+    @DirtiesContext
+    void categoryJoinTableCascade() {
+        Integer initialCategoryCount = countJoinTableEntries(3);
+        System.out.println("initialCategoryCount: " + initialCategoryCount);
+        assertEquals(1, initialCategoryCount);
+        System.out.println("delete entry");
+        System.out.println(restTemplate.withBasicAuth("TestUser", "TestPassword")
+                .exchange("/api/posts/3", HttpMethod.DELETE, null, Void.class));
+
+        System.out.println("checking for deleted category join table");
+
+        Integer finalCategoryCount = countJoinTableEntries(3);
+        System.out.println("finalCategoryCount: " + finalCategoryCount);
+        assertEquals(0, finalCategoryCount);
     }
 
 }

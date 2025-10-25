@@ -10,14 +10,25 @@ import java.util.Set;
 
 @Entity
 @Table(name = "Blog_Entries")
-// NamedEntityGraph needed for using JPA eager loading joins and use of pageable, avoiding N+1 for findAll()
-@NamedEntityGraph(
-        name = "fetch-with-pageable",
+// NamedEntityGraph needed for JPA eager loading without N+1
+@NamedEntityGraphs({
+    @NamedEntityGraph(
+        name = "eager-fetch-categories-author",
         attributeNodes = {
                 @NamedAttributeNode("author"),
                 @NamedAttributeNode("categories")
         }
-)
+    ),
+    @NamedEntityGraph(
+        name = "eager-fetch-all-collections-author",
+        attributeNodes = {
+                @NamedAttributeNode("author"),
+                @NamedAttributeNode("categories"),
+                @NamedAttributeNode("comments")
+        }
+    )
+})
+
 public class BlogEntry {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,7 +53,7 @@ public class BlogEntry {
     @JoinColumn(name = "author_id", nullable = false)
     private AppUser author;
 
-    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     @JoinTable(name = "Posts_Categories",
             joinColumns = @JoinColumn(name = "post_id"),
             inverseJoinColumns = @JoinColumn(name = "category_id"))
@@ -106,9 +117,6 @@ public class BlogEntry {
     }
     public Set<Comment> getComments() {
         return comments;
-    }
-    public void setComments(Set<Comment> comments) {
-        this.comments = comments;
     }
     public void addCategory(Category category) {
         this.categories.add(category);

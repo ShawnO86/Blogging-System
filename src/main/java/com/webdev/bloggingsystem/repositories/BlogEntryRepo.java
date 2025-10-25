@@ -1,34 +1,29 @@
 package com.webdev.bloggingsystem.repositories;
 
 import com.webdev.bloggingsystem.entities.BlogEntry;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
-import org.springframework.lang.NonNull;
 
 import java.util.Optional;
 
 public interface BlogEntryRepo extends CrudRepository<BlogEntry, Integer>, PagingAndSortingRepository<BlogEntry, Integer> {
-    // does not need to join categories - only looking for ownership
-    @Query("SELECT b FROM BlogEntry b " +
-            "JOIN FETCH b.author " +
-            "LEFT JOIN FETCH b.categories " +
-            "LEFT JOIN FETCH b.comments " +
-            "WHERE b.id = :id AND b.author.username = :author")
-    Optional<BlogEntry> findBlogEntryByIdAndAuthorName(@Param("id") Integer id, @Param("author") String author);
+    @EntityGraph(value = "eager-fetch-categories-author", type = EntityGraph.EntityGraphType.LOAD)
+    Optional<BlogEntry> findBlogEntryByIdAndAuthorUsername(Integer id, String authorUsername);
 
-    @Query("SELECT b FROM BlogEntry b " +
-        "JOIN FETCH b.author " +
-        "LEFT JOIN FETCH b.categories " +
-        "LEFT JOIN FETCH b.comments " +
-        "WHERE b.id = :id")
-    Optional<BlogEntry> findBlogEntryByIdEagerLoadAll(@Param("id") Integer id);
+    @EntityGraph(value = "eager-fetch-all-collections-author", type = EntityGraph.EntityGraphType.LOAD)
+    Optional<BlogEntry> findBlogEntryById(Integer id);
 
-    @EntityGraph(value = "fetch-with-pageable", type = EntityGraph.EntityGraphType.LOAD)
-    @NonNull
-    Page<BlogEntry> findAllByIsPublicTrue(@NonNull Pageable pageable);
+    @EntityGraph(value = "eager-fetch-categories-author", type = EntityGraph.EntityGraphType.LOAD)
+    Page<BlogEntry> findAllByIsPublicTrue(Pageable pageable);
+
+    @Modifying
+    @Query(value = "DELETE FROM Blog_Entries WHERE id = :id", nativeQuery = true)
+    void betterDeleteById(@Param("id") Integer id);
 }
