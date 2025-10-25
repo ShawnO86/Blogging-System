@@ -50,7 +50,7 @@ Will follow a multi-tier architecture of:
 * Scaling the frontend can be done with S3 and CloudFront or its own EC2 instance(s)
 
 ## Planned API Endpoints
-Role Based access - Entries can be set as `PRIVATE` - meaning they will not show on public `GET` endpoints if Principle is not the Author.
+Role Based access - Entries can be set as `PRIVATE` - meaning they will not show on public `GET` endpoints if requesting user is not the Author.
 
 Planned Authorities - `USER` (basic user/author) and `ADMIN` (administrator)
 
@@ -61,10 +61,10 @@ Planned Authorities - `USER` (basic user/author) and `ADMIN` (administrator)
 | BlogEntry | `POST`      | `/api/posts`                              | Create a new entry.                                                                                                                     | `USER, ADMIN`         |                                        
 | BlogEntry | `PUT`       | `/api/posts/{id}`                         | Update an entry.                                                                                                                        | `AUTHOR(USER), ADMIN` |
 | BlogEntry | `DELETE`    | `/api/posts/{id}`                         | Delete an entry.                                                                                                                        | `AUTHOR(USER), ADMIN` |
-| Comment    | `GET`       | `/api/posts/{id}/comments`                | Get all top-level comments for entry.                                                                                                   | `USER, ADMIN`         |
-| Comment    | `GET`       | `/api/comments/{parentCommentId}/replies` | Get all replies to a specific comment (lazy load).                                                                                      | `USER, ADMIN`         |
+| Comment    | `GET`       | `/api/posts/{id}/comments`                | Get all top-level comments for entry (also eager loaded on getById - BlogEntry).                                                        | `USER, ADMIN`         |
+| Comment    | `GET`       | `/api/comments/{parentCommentId}/replies` | Get all replies to a specific comment (lazy loaded).                                                                                    | `USER, ADMIN`         |
 | Comment    | `POST`      | `/api/posts/{id}/comments`                | Create a new comment (optional parentCommentId for creating a reply).                                                                   | `USER, ADMIN`         |
-| Comment    | `DELETE`    | `/api/comments/{id}`                      | Delete a comment (Requires Entry Author or Admin role - Comment Author not allowed to delete due to cascade delete of unowned replies). | `AUTHOR(USER), ADMIN` |
+| Comment    | `DELETE`    | `/api/comments/{id}`                      | Delete a comment (Admin role - Comment Author not allowed to delete due to cascade delete of unowned replies). | `ADMIN` |
 | AppUser    | `POST`      | `/api/auth/register`                      | Register a new user account.                                                                                                            | `PUBLIC`              |
 | AppUser    | `POST`      | `/api/auth/login`                         | Authenticate user and receive a JWT.                                                                                                    | `PUBLIC`              |
 | Category   | `GET`       | `/api/categories`                         | Get all categories.                                                                                                                     | `USER, ADMIN`         |
