@@ -23,6 +23,12 @@ public class AppUser {
     @Column(nullable = false)
     private String email;
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "Users_Roles",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
+    private Set<Role> roles = new HashSet<>();
+
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
 
@@ -83,6 +89,12 @@ public class AppUser {
     }
     public Set<Comment> getComments() {
         return comments;
+    }
+    public Set<Role> getRoles() {
+        return roles;
+    }
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 
     public void addPost(BlogEntry post) {

@@ -24,6 +24,7 @@ public class BlogEntryController {
 
     @GetMapping("/posts/{id}")
     public ResponseEntity<BlogEntryResponseDto> getBlogEntry(@PathVariable Integer id, Principal principal) {
+
         return ResponseEntity.ok(blogEntryService.getBlogEntryById(id, principal.getName()));
     }
 

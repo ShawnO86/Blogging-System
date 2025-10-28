@@ -55,8 +55,8 @@ public class BlogEntry {
 
     @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     @JoinTable(name = "Posts_Categories",
-            joinColumns = @JoinColumn(name = "post_id"),
-            inverseJoinColumns = @JoinColumn(name = "category_id"))
+            joinColumns = @JoinColumn(name = "post_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id", referencedColumnName = "id"))
     private Set<Category> categories =  new HashSet<>();
 
     @OneToMany(mappedBy = "blogEntry", orphanRemoval = true, fetch = FetchType.LAZY)
