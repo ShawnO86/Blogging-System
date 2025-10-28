@@ -23,17 +23,17 @@ public class AppUser {
     @Column(nullable = false)
     private String email;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "Users_Roles",
-            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
-    private Set<Role> roles = new HashSet<>();
-
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
 
     @Column(name = "date_created", nullable = false, insertable = false, updatable = false)
     private LocalDate createdAt;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "Users_Roles",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
+    private Set<Role> roles = new HashSet<>();
 
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
     private Set<BlogEntry> posts =  new HashSet<>();
