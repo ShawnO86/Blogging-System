@@ -335,4 +335,16 @@ public class BlogEntryControllerTest {
         assertEquals(0, finalCategoryCount);
     }
 
+    @Test
+    @DisplayName("17. should allow private entry to be viewed by author")
+    void getBlogEntryWithAuthor() {
+        // test data = BlogEntry with id 2 is private and owned by TestAdmin.
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("TestAdmin", "TestPassword")
+                .getForEntity("/api/posts/2", String.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return 200 OK");
+        System.out.println("response: " + response);
+    }
+
 }
