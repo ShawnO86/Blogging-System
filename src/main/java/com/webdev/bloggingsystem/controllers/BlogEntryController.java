@@ -20,12 +20,16 @@ public class BlogEntryController {
     public BlogEntryController(BlogEntryService blogEntryService) {
         this.blogEntryService = blogEntryService;
     }
-    // todo : look out for any n+1 issues here..
 
     @GetMapping("/{id}")
     public ResponseEntity<BlogEntryResponseDto> getBlogEntry(@PathVariable Integer id, Principal principal) {
-
-        return ResponseEntity.ok(blogEntryService.getBlogEntryById(id, principal.getName()));
+        String username;
+        if (principal != null) {
+            username = principal.getName();
+        } else {
+            username = null;
+        }
+        return ResponseEntity.ok(blogEntryService.getBlogEntryById(id, username));
     }
 
     @GetMapping()
