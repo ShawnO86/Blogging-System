@@ -1,4 +1,4 @@
-package com.webdev.bloggingsystem.config;
+package com.webdev.bloggingsystem.security;
 
 import com.webdev.bloggingsystem.entities.AppUser;
 import com.webdev.bloggingsystem.entities.Role;
@@ -14,7 +14,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -38,8 +37,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         return new User(user.getUsername(), user.getPassword(), this.mapRolesToAuthorities(user.getRoles()));
     }
 
-    private Collection<GrantedAuthority> mapRolesToAuthorities(Set<Role> roles) {
-        logger.debug("Loading user roles: {}", roles.toString());
+    private Set<GrantedAuthority> mapRolesToAuthorities(Set<Role> roles) {
+        logger.debug("Setting user permissions: {}", roles.toString());
         Set<GrantedAuthority> authorities = new HashSet<>();
         for (Role role : roles) {
             authorities.add(new SimpleGrantedAuthority(role.getRole().name()));
