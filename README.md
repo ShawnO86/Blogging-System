@@ -14,7 +14,7 @@
 ## Requirements
 * Tech Stack:
   * Java Spring Boot, MySQL, JWT (for authentication), Angular or Vue + Typescript, Docker, Nginx, AWS (EC2, ECR)
-* CRUD operations on Blog Posts, Post Comments, and Users:
+* CRUD operations on Blog Posts, Post Comments, and Categories:
   * Filter posts by category, author, and/or date_updated. 
 * Single Page App 
 * Security:
