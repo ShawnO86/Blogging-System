@@ -1,4 +1,4 @@
-package com.webdev.bloggingsystem.config;
+package com.webdev.bloggingsystem.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,7 +27,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(request -> request
                 .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                 .requestMatchers("/api/posts/**").authenticated()
-                .requestMatchers("api/auth/**").permitAll())
+                .requestMatchers("/api/auth/login").permitAll()
+                .requestMatchers("/api/auth/register").hasRole("ADMIN"))
             .httpBasic(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable());
 

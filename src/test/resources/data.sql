@@ -1,7 +1,7 @@
 INSERT INTO Roles(role)
 VALUES
-    ('USER'),
-    ('ADMIN');
+    ('ROLE_USER'),
+    ('ROLE_ADMIN');
 
 INSERT INTO Users(username, password, email, date_created, is_active)
 VALUES

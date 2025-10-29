@@ -1,6 +1,6 @@
 CREATE TABLE `Roles` (
                          `id` int NOT NULL AUTO_INCREMENT,
-                         `role` enum('ADMIN','USER') NOT NULL,
+                         `role` enum('ROLE_ADMIN','ROLE_USER') NOT NULL,
                          PRIMARY KEY (`id`)
 );
 

@@ -32,10 +32,7 @@ public class Role {
 
     @Override
     public String toString() {
-        return "Role{" +
-                "id=" + id +
-                ", role=" + role +
-                '}';
+        return "role=" + role;
     }
 
     // compares only id fields, returns false for entities not persisted - where this.id == null
