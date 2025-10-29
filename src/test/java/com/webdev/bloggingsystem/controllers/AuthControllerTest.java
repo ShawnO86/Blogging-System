@@ -40,6 +40,7 @@ public class AuthControllerTest {
         Optional<AppUser> appUser = appUserRepo.findByUsername("RegisterTest");
         Assertions.assertTrue(appUser.isPresent());
         System.out.println("New Registered User: " + appUser.get());
+        System.out.println(response);
     }
 
     @Test
@@ -56,6 +57,7 @@ public class AuthControllerTest {
 
         Optional<AppUser> appUser = appUserRepo.findByUsername("RegisterTest");
         Assertions.assertFalse(appUser.isPresent());
+        System.out.println(response);
     }
 
     @Test
@@ -82,16 +84,30 @@ public class AuthControllerTest {
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
         Assertions.assertEquals("Login Successful", response.getBody());
+        System.out.println(response);
     }
 
     @Test
-    @DisplayName("5. should login existing user")
-    public void loginUserBadCredentials() {
+    @DisplayName("5. should not login existing user with incorrect password")
+    public void loginUserBadPassword() {
         LoginDto loginDto = new LoginDto("TestUser", "BadPassword");
 
         ResponseEntity<String> response = restTemplate
                 .postForEntity("/api/auth/login", loginDto, String.class);
 
         Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        System.out.println(response);
+    }
+
+    @Test
+    @DisplayName("6. should not login user with non-existent username")
+    public void loginUserBadUsername() {
+        LoginDto loginDto = new LoginDto("BadUser", "TestPassword");
+
+        ResponseEntity<String> response = restTemplate
+                .postForEntity("/api/auth/login", loginDto, String.class);
+
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        System.out.println(response);
     }
 }
