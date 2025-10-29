@@ -1,5 +1,6 @@
 package com.webdev.bloggingsystem.controllers;
 
+import com.webdev.bloggingsystem.entities.LoginDto;
 import com.webdev.bloggingsystem.entities.RegistrationDto;
 import com.webdev.bloggingsystem.services.AuthService;
 
@@ -16,10 +17,15 @@ public class AuthController {
         this.authService = authService;
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody LoginDto loginDto) {
+        authService.loginUser(loginDto);
+        return ResponseEntity.ok("Login Successful");
+    }
+
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody RegistrationDto registrationDto) {
         authService.registerUser(registrationDto);
         return ResponseEntity.ok("User Registration Successful");
     }
-
 }

@@ -1,13 +1,22 @@
 package com.webdev.bloggingsystem.services;
 
+
 import com.webdev.bloggingsystem.entities.AppUser;
+import com.webdev.bloggingsystem.entities.LoginDto;
 import com.webdev.bloggingsystem.entities.RegistrationDto;
 import com.webdev.bloggingsystem.entities.Role;
 import com.webdev.bloggingsystem.entities.RoleType;
 import com.webdev.bloggingsystem.exceptions.UsernameInUseException;
 import com.webdev.bloggingsystem.repositories.AppUserRepo;
 import com.webdev.bloggingsystem.repositories.RoleRepo;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,20 +24,21 @@ import java.util.Set;
 
 @Service
 public class AuthServiceImpl implements AuthService {
+    private final static Logger logger  = LoggerFactory.getLogger(AuthServiceImpl.class);
 
-    private final AuthenticationManager authenticationManager;
     private final AppUserRepo appUserRepo;
     private final RoleRepo roleRepo;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
-    public AuthServiceImpl(AuthenticationManager authenticationManager,
-                           AppUserRepo appUserRepo,
+    public AuthServiceImpl(AppUserRepo appUserRepo,
                            RoleRepo roleRepo,
-                           PasswordEncoder passwordEncoder) {
-        this.authenticationManager = authenticationManager;
+                           PasswordEncoder passwordEncoder,
+                           AuthenticationManager authenticationManager) {
         this.appUserRepo = appUserRepo;
         this.roleRepo = roleRepo;
         this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
     }
 
     @Override
@@ -41,13 +51,27 @@ public class AuthServiceImpl implements AuthService {
         appUserRepo.save(appUser);
     }
 
+    @Override
+    public void loginUser(LoginDto loginDto) {
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginDto.username(),
+                            loginDto.password()
+                    )
+            );
+        context.setAuthentication(authentication);
+        SecurityContextHolder.setContext(context);
+    }
+
+
     private AppUser mapDtoToAppUser(RegistrationDto registrationDto) {
         AppUser appUser = new AppUser(
                 registrationDto.username(),
                 passwordEncoder.encode(registrationDto.password()),
                 registrationDto.email()
         );
-        Role role = roleRepo.findByRole(RoleType.USER);
+        Role role = roleRepo.findByRole(RoleType.ROLE_USER);
         appUser.setRoles(Set.of(role));
 
         return appUser;
