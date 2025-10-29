@@ -46,11 +46,11 @@ public class BlogEntryServiceImpl implements BlogEntryService {
         BlogEntry entry = blogEntryRepo.findBlogEntryById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Entry not found with id " + id));
         // could use repo to make this check - but, want to be able to allow author to view their own private entries,
-        logger.debug("getBlogEntryById: checking author against principal");
+        logger.debug("getBlogEntryById: checking if entry is private and author against principal name");
         if (!entry.isPublic() && !entry.getAuthor().getUsername().equals(principalName)) {
             throw new ResourceNotFoundException("Entry not found with id " + id);
         }
-        logger.debug("getBlogEntryById: calling/building response dto");
+        logger.debug("getBlogEntryById: building response dto");
         return new BlogEntryResponseDto(entry, true);
     }
 

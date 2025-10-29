@@ -30,7 +30,7 @@ public class BlogEntryControllerTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
     private Integer countJoinTableEntries(Integer postId) {
-        // for join table with no repository, only used to check if cascade works when deleting Entry
+        // for join table with no repository, only used to check if database cascade delete works when deleting related Entry
         return jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM Posts_Categories WHERE post_id = ?",
                 Integer.class,
