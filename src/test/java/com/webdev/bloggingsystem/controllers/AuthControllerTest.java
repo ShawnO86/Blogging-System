@@ -3,8 +3,7 @@ package com.webdev.bloggingsystem.controllers;
 import com.webdev.bloggingsystem.entities.AppUser;
 import com.webdev.bloggingsystem.entities.RegistrationDto;
 import com.webdev.bloggingsystem.repositories.AppUserRepo;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -14,7 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test") // <-- for H2 testing, comment out for MySQL
@@ -25,19 +24,36 @@ public class AuthControllerTest {
     private AppUserRepo appUserRepo;
 
     @Test
-    @DisplayName("1. register user")
-    public void registerUser() {
+    @DisplayName("1. admin should be allowed to register user")
+    public void registerUserAsAdmin() {
         RegistrationDto registrationDto = new RegistrationDto(
                 "RegisterTest", "TestPassword", "TestEmail@email.com");
 
         ResponseEntity<String> response = restTemplate
+                .withBasicAuth("TestAdmin", "TestPassword")
                 .postForEntity("/api/auth/register", registrationDto, String.class);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("User Registration Successful", response.getBody());
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertEquals("User Registration Successful", response.getBody());
 
         Optional<AppUser> appUser = appUserRepo.findByUsername("RegisterTest");
-        assertTrue(appUser.isPresent());
-        System.out.println(appUser.get());
+        Assertions.assertTrue(appUser.isPresent());
+        System.out.println("New Registered User: " + appUser.get());
+    }
+
+    @Test
+    @DisplayName("2. user should not be allowed to register user")
+    public void registerUserAsUser() {
+        RegistrationDto registrationDto = new RegistrationDto(
+                "RegisterTest", "TestPassword", "TestEmail@email.com");
+
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("TestUser", "TestPassword")
+                .postForEntity("/api/auth/register", registrationDto, String.class);
+
+        Assertions.assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+
+        Optional<AppUser> appUser = appUserRepo.findByUsername("RegisterTest");
+        Assertions.assertFalse(appUser.isPresent());
     }
 }
