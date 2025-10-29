@@ -82,11 +82,12 @@ public class BlogEntryServiceImpl implements BlogEntryService {
     }
 
     // todo: create validation logic, use before saving & updating.
-
+    // todo: need to validate categories exist & size of title/content
     @Override
     public URI saveEntry(BlogEntryRequestDto blogEntryRequestDto, String principalName, UriComponentsBuilder ucb) {
         logger.debug("saveEntry: getting author");
-        AppUser author = appUserRepo.findByUsername(principalName);
+        AppUser author = appUserRepo.findByUsername(principalName)
+                .orElseThrow(() -> new ResourceNotFoundException("Author not found with name " + principalName));
         logger.debug("saveEntry: getting categories");
         Set<Category> categories = categoryRepo.findByCategoryNameIn(blogEntryRequestDto.categories());
         logger.debug("saveEntry: saving entry");
