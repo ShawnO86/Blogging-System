@@ -9,6 +9,12 @@ import java.util.Set;
 
 @Entity
 @Table(name = "Users")
+@NamedEntityGraph(
+        name = "eager-fetch-roles",
+        attributeNodes = {
+                @NamedAttributeNode("roles")
+        }
+)
 public class AppUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -116,6 +122,7 @@ public class AppUser {
                 ", email='" + email + '\'' +
                 ", isActive=" + isActive +
                 ", createdAt=" + createdAt +
+                ", roles=" + roles +
                 '}';
     }
 
