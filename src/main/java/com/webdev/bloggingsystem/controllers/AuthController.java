@@ -1,5 +1,6 @@
 package com.webdev.bloggingsystem.controllers;
 
+import com.webdev.bloggingsystem.entities.AuthResponseDto;
 import com.webdev.bloggingsystem.entities.LoginDto;
 import com.webdev.bloggingsystem.entities.RegistrationDto;
 import com.webdev.bloggingsystem.services.AuthService;
@@ -18,9 +19,9 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginDto loginDto) {
-        authService.loginUser(loginDto);
-        return ResponseEntity.ok("Login Successful");
+    public ResponseEntity<AuthResponseDto> login(@RequestBody LoginDto loginDto) {
+        AuthResponseDto authResponseDto = authService.loginUser(loginDto);
+        return ResponseEntity.ok(authResponseDto);
     }
 
     @PostMapping("/register")

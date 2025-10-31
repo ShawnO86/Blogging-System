@@ -1,15 +1,12 @@
 package com.webdev.bloggingsystem.services;
 
 
-import com.webdev.bloggingsystem.entities.AppUser;
-import com.webdev.bloggingsystem.entities.LoginDto;
-import com.webdev.bloggingsystem.entities.RegistrationDto;
-import com.webdev.bloggingsystem.entities.Role;
-import com.webdev.bloggingsystem.entities.RoleType;
+import com.webdev.bloggingsystem.entities.*;
 import com.webdev.bloggingsystem.exceptions.UsernameInUseException;
 import com.webdev.bloggingsystem.repositories.AppUserRepo;
 import com.webdev.bloggingsystem.repositories.RoleRepo;
 
+import com.webdev.bloggingsystem.security.JwtTokenGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -30,15 +27,18 @@ public class AuthServiceImpl implements AuthService {
     private final RoleRepo roleRepo;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final JwtTokenGenerator jwtTokenGenerator;
 
     public AuthServiceImpl(AppUserRepo appUserRepo,
                            RoleRepo roleRepo,
                            PasswordEncoder passwordEncoder,
-                           AuthenticationManager authenticationManager) {
+                           AuthenticationManager authenticationManager,
+                           JwtTokenGenerator jwtTokenGenerator) {
         this.appUserRepo = appUserRepo;
         this.roleRepo = roleRepo;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+        this.jwtTokenGenerator = jwtTokenGenerator;
     }
 
     @Override
@@ -52,7 +52,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void loginUser(LoginDto loginDto) {
+    public AuthResponseDto loginUser(LoginDto loginDto) {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -62,6 +62,8 @@ public class AuthServiceImpl implements AuthService {
             );
         context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
+        String jwt = jwtTokenGenerator.generateToken(authentication);
+        return new AuthResponseDto(jwt);
     }
 
 
